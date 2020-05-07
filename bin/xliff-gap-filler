@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+'use strict';
+
+const xliff = require('xliff');
+
+function parseArgs() {
+    // ignore node binary and package binary name
+    const args = process.argv.slice(2);
+
+    let argsValues = {};
+
+    let param = '', value = false;
+
+    for (let i = 0; i < args.length; i++) {
+        let currentSegment = args[i];
+
+        if (currentSegment.startsWith('--')) {
+            param = currentSegment.replace('--', '');
+            value = false;
+        } else {
+            if (value !== false) {
+                value += ' ' + currentSegment;
+            } else {
+                value = currentSegment;
+            }
+
+            // Update the value every iteration
+            if (param !== '') {
+                argsValues[param] = value;
+            }
+        }
+    }
+
+    return argsValues;
+}
+
+function insertTargetElemsInGaps(res) {
+    let namespaces = Object.keys(res.resources);
+    let filledGaps = 0;
+
+    for (let i = 0; i < namespaces.length; i++) {
+        let namespace = namespaces[i];
+        let assignedTranslations = res.resources[namespace];
+
+        let translationIds = Object.keys(assignedTranslations);
+
+        for (let j = 0; j < translationIds.length; j++) {
+            let translationId = translationIds[j];
+            let singleTranslation = assignedTranslations[translationId];
+
+            if (Object.keys(singleTranslation).indexOf('target') === -1) {
+                singleTranslation.target = singleTranslation.source;
+                filledGaps++;
+            }
+        }
+    }
+
+    return {
+        filledGaps,
+        res: res
+    };
+}
+
+let args = parseArgs();
+
+if (Object.keys(args).indexOf('files') !== -1) {
+    const glob = require("glob");
+    const fs = require("fs");
+    const path = require("path");
+
+    const globPatterns = args.files.split(' ');
+
+    // Iterate glob patterns
+    for (let i = 0; i < globPatterns.length; i++) {
+        const pattern = globPatterns[i];
+
+        let globedFiles = glob.sync(pattern);
+
+        for (let j = 0; j < globedFiles.length; j++) {
+            let filePath = globedFiles[j];
+
+            let fullPath = path.join(process.cwd(), filePath);
+            const fileContent = fs.readFileSync(fullPath).toString();
+
+            xliff.xliff12ToJs(fileContent, (err, res) => {
+                if (err !== null) {
+                    console.error("Error while parsing " + filePath);
+                    process.exit(-1);
+                }
+
+                let results = insertTargetElemsInGaps(res);
+
+                console.log("Filled " + results.filledGaps + " gaps for " + filePath);
+
+                if (results.filledGaps > 0) {
+                    xliff.jsToXliff12(results.res, (err, res) => {
+                        if (err !== null) {
+                            console.error("Error while writing " + filePath);
+                            process.exit(-1);
+                        }
+
+                        fs.writeFileSync(fullPath, res);
+                    });
+                }
+            });
+        }
+    }
+} else {
+    // Exit with error
+    console.error('Usage: xliff-gap-filler --files pattern [pattern]+');
+    process.exit(1);
+}
+
+
