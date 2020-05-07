@@ -9,8 +9,15 @@ WARNING: This hasn't been extensively tested as it only provides a limited funct
 
 == What problem is this trying to solve?
 
-When you have an i18n angular app and trying to to multi-language builds via the `--localize` flag
-it will throw errors like
+When you have an i18n angular app with missing translations in some language and try to multi-language builds via the `--localize` flag
+it will throw errors like:
+
+```
+An unhandled exception occurred: Failed to parse "project/src/locale/messages.fr.xlf" as XLIFF 1.2 format
+ERRORS:
+ - Missing required <target> element ("
+...
+```
 
 This means it can't build if you don't provide a translation for every trans-unit. No need to say that
 ** it is bad practice to build an i18n app without providing appropriate translations **  but there are two cases
