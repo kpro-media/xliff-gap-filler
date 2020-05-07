@@ -1,0 +1,56 @@
+= xliff-gap-filler
+
+Xliff-gap-filler provides an easy way for your builds (especially angular projects) not to have an dependency on everything ist translated.
+
+It just fills the gaps in the xliff-files with the source translation.
+That means: Missing translations are just shown in the source language (Preferrably to not building at all).
+
+WARNING: This hasn't been extensively tested as it only provides a limited functionality for an specific problem in a single case. Use at your own risk.
+
+== What problem is this trying to solve?
+
+When you have an i18n angular app and trying to to multi-language builds via the `--localize` flag
+it will throw errors like
+
+This means it can't build if you don't provide a translation for every trans-unit. No need to say that
+** it is bad practice to build an i18n app without providing appropriate translations **  but there are two cases
+in which the this becomes annoying:
+
+1. Testing multi-language-builds
+2. The urgent need to deploy an important bugfix, feature, etc. without relying on the translators
+
+== usage
+
+First install the package via:
+
+[source,bash]
+----
+npm install --save-dev @kpro-media/xliff-gap-filler
+----
+
+Use it:
+
+WARNING: This will directly write to the files matching the glob pattern
+
+[source,bash]
+----
+xliff-gap-filler --files [glob-pattern]...
+----
+
+It will fill the gaps in the files matching the glob-patterns by created target elements that have the same content
+as the source elements.
+
+
+== package.json integration
+
+Just integrate it in your package.json build-script:
+
+[source,json]
+----
+{
+  "scripts": {
+    "xliff-gap-fill": "xliff-gap-filler --files src/locale/*.xlf",
+    "build-prod": "npm run xliff-gap-fill && ng build --localize --configuration=production"
+  }
+}
+----
