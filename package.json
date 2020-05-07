@@ -2,7 +2,6 @@
   "name": "@kpro-media/xliff-gap-filler",
   "version": "1.0.0",
   "description": "A package which provides a command to 'fill the gaps '(set target translation to source for missing translations) in one or more places containing xliff 1.2 files specified via glob-patterns. This is especially usefull for angular multi-language builds which fail due to missing translations",
-  "main": "index.js",
   "dependencies": {
     "glob": "^7.1.6",
     "xliff": "^5.0.5"
